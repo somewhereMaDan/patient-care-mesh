@@ -1,13 +1,12 @@
 package com.pm.patientservice.controller;
 
+import com.pm.patientservice.dto.PatientRequest;
 import com.pm.patientservice.dto.PatientResponse;
 import com.pm.patientservice.service.PatientService;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,8 +17,14 @@ public class PatientController {
     private PatientService ps;
 
     @GetMapping
-    public ResponseEntity<List<PatientResponse>> getPatients(){
+    public ResponseEntity<List<PatientResponse>> get(){
         List<PatientResponse> res = ps.getPatients();
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PostMapping
+    public ResponseEntity<PatientResponse> create(@RequestBody PatientRequest req){
+        PatientResponse res = ps.createPatient(req);
         return ResponseEntity.ok().body(res);
     }
 }

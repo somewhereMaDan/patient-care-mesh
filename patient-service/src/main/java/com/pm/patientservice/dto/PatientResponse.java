@@ -7,6 +7,33 @@ public class PatientResponse {
     private String address;
     private String dob;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public String getId() {
         return id;
     }

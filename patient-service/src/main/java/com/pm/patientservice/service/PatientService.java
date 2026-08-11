@@ -1,11 +1,13 @@
 package com.pm.patientservice.service;
 
 import com.pm.patientservice.Repository.PatientRepository;
+import com.pm.patientservice.dto.PatientRequest;
 import com.pm.patientservice.dto.PatientResponse;
 import com.pm.patientservice.mapper.PatientMapper;
 import com.pm.patientservice.model.Patient;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,5 +24,11 @@ public class PatientService {
                 map(PatientMapper::toDTO).toList();
 
         return resDTO;
+    }
+
+    public PatientResponse createPatient(PatientRequest req){
+        Patient res = PatientModel.save(PatientMapper.toModal(req));
+
+        return PatientMapper.toDTO(res);
     }
 }
