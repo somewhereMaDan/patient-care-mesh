@@ -1,0 +1,39 @@
+services:
+    db:
+        image: postgres:17
+        container_name: shared-db
+        restart: unless-stopped
+        environment:
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: db
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+        networks:
+            - internal
+
+    patient-service:
+        build:
+            context: ./patient-service
+            dockerfile: dockerfile
+        container_name: patient-service
+        restart: "no"
+        depends_on:
+            - db
+        environment:
+            DB_HOST: shared-db
+            DB_PORT: 5432
+            DB_NAME: db
+            DB_PASSWORD: password
+        ports:
+            - "4000:4000"
+        networks:
+            - internal
+
+networks:
+    internal:
+        driver: bridge
+
+volumes:
+    db_data:

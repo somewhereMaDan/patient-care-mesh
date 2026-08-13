@@ -1,2 +1,3 @@
 # Patient service local configuration
 /patient-service/src/main/resources/application.properties
+/billing-service/src/main/resources/application.properties
