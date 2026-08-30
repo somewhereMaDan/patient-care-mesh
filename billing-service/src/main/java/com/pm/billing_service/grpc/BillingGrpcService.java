@@ -13,7 +13,7 @@ public class BillingGrpcService extends BillingServiceImplBase {
 
   @Override
   public void createBillingAccount(billing.BillingRequest billingRequest,
-                                   StreamObserver<billing.BillingResponse> responseObserver) {
+      StreamObserver<billing.BillingResponse> responseObserver) {
     log.info("createBillingAccount request received {}", billingRequest.toString());
 
     // logic
@@ -24,7 +24,8 @@ public class BillingGrpcService extends BillingServiceImplBase {
         .setStatus("ACTIVE")
         .build();
 
-    responseObserver.onNext(resopnse); // sending the response from GRPC service to back to the client (in this scenario -> patient service)
+    responseObserver.onNext(resopnse); // sending the response from GRPC service to back to the client (in this
+                                       // scenario -> patient service)
     responseObserver.onCompleted(); // to end the cycle/stream, because we can return as many response as we want
   }
 }

@@ -15,4 +15,6 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
   @Modifying
   @Query("DELETE FROM Patient p WHERE p.id = :id")
   int deletePatientById(@Param("id") UUID id);
+
+  boolean existsByEmail(String email);
 }
