@@ -7,10 +7,10 @@ RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# -- Stage 2: run the jar
 
+# -- Stage 2: run the jar
 FROM eclipse-temurin:21-jre AS runner
 WORKDIR /app
-COPY --from=builder /app/target/patient-service-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 4000
+COPY --from=builder /app/target/api-gateway-0.0.1-SNAPSHOT.jar app.jar
+EXPOSE 4004
 ENTRYPOINT ["java", "-jar", "app.jar"]

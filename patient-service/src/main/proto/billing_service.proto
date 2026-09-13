@@ -5,6 +5,10 @@ package billing;
 option java_multiple_files = true;
 option java_package = "billing";
 
+/*
+// The gRPC framework routes incoming calls by method name (like /billing.BillingService/CreateBillingAccount) to the right handler.
+*/
+
 service BillingService {
     rpc CreateBillingAccount (BillingRequest) returns (BillingResponse);
 }

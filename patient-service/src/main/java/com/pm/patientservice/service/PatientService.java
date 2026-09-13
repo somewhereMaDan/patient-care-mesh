@@ -1,5 +1,6 @@
 package com.pm.patientservice.service;
 
+import com.pm.patientservice.kafka.KafkaProducer;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class PatientService {
+  private final KafkaProducer kafkaProducer;
   private final PatientRepository PatientModel;
   private final BillingServiceGrpcClient billingServiceGrpcClient;
   private static final Logger log = LoggerFactory.getLogger(BillingServiceGrpcClient.class);
@@ -40,7 +42,7 @@ public class PatientService {
   @Transactional
   public PatientResponse createPatient(PatientRequest req) {
     if (PatientModel.existsByEmail(req.getEmail())) {
-      throw new BadRequestException("patient already exists with thsi email" + req.getEmail());
+      throw new BadRequestException("patient already exists with this email: " + req.getEmail());
     }
     Patient patient = PatientModel.save(PatientMapper.toModal(req));
 
@@ -59,6 +61,8 @@ public class PatientService {
       // Decide what your business wants here
       throw new BadRequestException("Unable to create billing account");
     }
+
+    kafkaProducer.sendEvent(patient);
 
     // billingServiceGrpcClient.createBillingAccount(patient.getId(),
     // patient.getName(), patient.getEmail());

@@ -1,105 +1,187 @@
 services:
-    db:
-        image: postgres:17
-        container_name: shared-db
-        restart: unless-stopped
-        environment:
-            POSTGRES_PASSWORD: password
-            POSTGRES_DB: db
-        volumes:
-            - db_data:/var/lib/postgresql/data
-        ports:
-            - "5432:5432"
-        networks:
-            - internal
-        healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U postgres -d db"]
-            interval: 5s
-            timeout: 5s
-            retries: 10
+  db:
+    image: postgres:17
+    container_name: shared-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      
+  kafka:
+    image: apache/kafka:4.3.0
+    container_name: kafka
+    environment:
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+      KAFKA_NODE_ID: 0
+      KAFKA_PROCESS_ROLES: broker,controller
 
-    # specifying the env variables that we need in order to run the container and that other contianer can access kafka broker
-    # kafka:
-    #     image: apache/kafka:4.3.0
-    #     container_name: kafka
-    #     environment:
-    #         KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
-    #         KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-    #         KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
-    #         KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
-    #         KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-    #         KAFKA_CFG_NODE_ID: 0
-    #         KAFKA_CFG_PROCESS_ROLES: controller,broker
-    kafka:
-        image: apache/kafka:4.3.0
-        container_name: kafka
-        environment:
-            KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
-            KAFKA_NODE_ID: 0
-            KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
 
-            KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
 
-            KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-            KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "9092:9092" # Listner-PLAINTEXT (used by other docker containers, eg. kafka:9092)
+      - "9094:9094" # Listner-EXTERNAL (used by host machine, eg. localhost:9094)
+    #   "HOST_PORT:CONTAINER_PORT"
+    networks:
+      - internal
 
-            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-            KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-        ports:
-            - "9092:9092"
-            - "9094:9094"
-        networks:
-            - internal
+  patient-service:
+    build:
+      context: ./patient-service
+      dockerfile: dockerfile
+    container_name: patient-service
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      billing-service:
+        condition: service_started
+      kafka:
+        condition: service_started
+    environment:
+      DB_HOST: shared-db
+      DB_PORT: 5432
+      DB_NAME: db
+      DB_PASSWORD: password
+      BILLING_SERVICE_ADDRESS: billing-service
+      BILLING_SERVICE_GRPC_PORT: 9001
+      LOGGING_LEVEL_ROOT: WARN
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    #       patient-service
+    #       |
+    #       | TCP connection
+    #       |
+    #       ▼
+    #       kafka:9092
+    
+    # we will not be able to use the port 4000 from outside of the docker container
+    # we are using api-gateway to resolve that
+    # ports:
+    #   - "4000:4000"
+    networks:
+      - internal
 
-    patient-service:
-        build:
-            context: ./patient-service
-            dockerfile: dockerfile
-        container_name: patient-service
-        restart: "no"
-        depends_on:
-            db:
-                condition: service_healthy
-            billing-service:
-                condition: service_started
-        environment:
-            DB_HOST: shared-db
-            DB_PORT: 5432
-            DB_NAME: db
-            DB_PASSWORD: password
-            BILLING_SERVICE_ADDRESS: billing-service
-            BILLING_SERVICE_GRPC_PORT: 9001
-        ports:
-            - "4000:4000"
-        networks:
-            - internal
+  billing-service:
+    build:
+      context: ./billing-service
+      dockerfile: dockerfile
+    container_name: billing-service
+    restart: "no"
+    # depends_on:
+    #     - db
+    # environment:
+    #     DB_HOST: shared-db
+    #     DB_PORT: 5432
+    #     DB_NAME: db
+    #     DB_PASSWORD: password
+    ports:
+      - "4001:4001"
+      - "9001:9001"
+    networks:
+      - internal
 
-    billing-service:
-        build:
-            context: ./billing-service
-            dockerfile: dockerfile
-        container_name: billing-service
-        restart: "no"
-        # depends_on:
-        #     - db
-        # environment:
-        #     DB_HOST: shared-db
-        #     DB_PORT: 5432
-        #     DB_NAME: db
-        #     DB_PASSWORD: password
-        ports:
-            - "4001:4001"
-            - "9001:9001"
-        networks:
-            - internal
+  analytics-service:
+    build:
+      context: ./analytics-service
+      dockerfile: dockerfile
+    container_name: analytics-service
+    restart: "no"
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      LOGGING_LEVEL_ROOT: WARN
+    ports:
+      - "4002:4002"
+    networks:
+      - internal
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: dockerfile
+    container_name: api-gateway
+    restart: "no"
+    ports: 
+      - "4004:4004"
+    networks:
+      - internal
 
 networks:
-    internal:
-        driver: bridge
+  internal:
+    driver: bridge
 
 volumes:
-    db_data:
+  db_data:
+
+#      Docker internal network
+#   ┌──────────────────────────┐
+#   │                          │
+#   │  patient-service         │ -> producing event from topic
+#   │       │                  │
+#   │       │ kafka:9092       │
+#   │       ▼                  │
+#   │     Kafka                │
+#   │       │                  │
+#   │       │ kafka:9092       │
+#   │       ▼                  │
+#   │  analytics-service       │ -> consuming event from topic
+#   │                          │
+#   └──────────────────────────┘
+#              ▲
+#              │
+#         localhost:9094
+#              │
+#        Your host machine
+
+# --------------------------------------------------------------------- (Producer → Kafka topic ← Consumer)
+
+#     patient-service
+#       |
+#       | Producer
+#       | kafka:9092
+#       ▼
+#     Kafka
+#       |
+#       | patient topic
+#       ▼
+#    analytics-service
+#       |
+#       | Consumer
+#       | kafka:9092
+
+# ---------------------------------------------------------------------
+# (Containers talk to Kafka using kafka:9092)
+# (Things outside Docker talk to Kafka using localhost:9094)
+# 9092 → Docker-to-Docker
+# 9094 → Host-to-Docker
+
+#                      KAFKA
+#                        │
+#           ┌────────────┴────────────┐
+#           │                         │
+#        INTERNAL                   EXTERNAL
+#           │                         │
+#       9092                         9094
+#           │                         │
+#     kafka:9092                localhost:9094
+#           │                         │
+#           ▼                         ▼
+#  Docker containers              Host machine

@@ -1,0 +1,60 @@
+server:
+  port: 4004
+
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: DEBUG
+    # root: INFO
+    # org.springframework.cloud.gateway: DEBUG
+
+spring:
+  output:
+    ansi:
+      enabled: ALWAYS
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+          # REST CLIENT -> http://localhost:4004/api/patients
+          # API GATEWAY -> http://patient-service:4000/patients
+          # PATIENT SERVICE (SPRING BOOT APP) -> /patients -> Patients Array
+            - id: patient-service-route
+              uri: http://patient-service:4000
+              predicates:
+                - Path=/api/patients,/api/patients/**
+              filters:
+                - StripPrefix=1
+    
+            # ┌──────────────────────────────┐
+            # │       Your HOST machine      │
+            # └─────────────┬─────────────── ┘
+            #               │
+            #               │ port 4004
+            #               ↓
+            # ┌──────────────────────────────┐
+            # │       API Gateway container  │
+            # │                              │
+            # │  listens on :4004            │
+            # └─────────────┬─────────────── ┘
+            #               │
+            #               │ Docker network
+            #               │
+            #               │ http://patient-service:4000
+            #               ↓
+            # ┌──────────────────────────────┐
+            # │    patient-service container │
+            # │                              │
+            # │    Spring Boot :4000         │
+            # └──────────────────────────────┘
+    
+            # REST CLIENT -> http://localhost:4004/api-docs/patients
+            # API GATEWAY -> http://patient-service:4000/v3/api-docs
+            - id: api-docs-patient-route
+              uri: http://patient-service:4000
+              predicates: 
+                - Path=/api-docs/patients
+              filters:
+                - RewritePath=/api-docs/patients,/v3/api-docs
