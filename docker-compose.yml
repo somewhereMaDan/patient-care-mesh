@@ -17,6 +17,25 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  auth-db:
+    image: postgres:17
+    container_name: auth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    ports:
+      - "5001:5432"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
       
   kafka:
     image: apache/kafka:4.3.0
@@ -88,7 +107,9 @@ services:
     restart: "no"
     # depends_on:
     #     - db
-    # environment:
+    environment:
+      - SPRING_OUTPUT_ANSI_ENABLED=ALWAYS
+    tty: true
     #     DB_HOST: shared-db
     #     DB_PORT: 5432
     #     DB_NAME: db
@@ -124,12 +145,30 @@ services:
     networks:
       - internal
 
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: dockerfile
+    container_name: auth-service
+    restart: "no"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_NAME: db
+      DB_PASSWORD: password
+    ports: 
+      - "4005:4005"
+
 networks:
   internal:
     driver: bridge
 
 volumes:
   db_data:
+  auth_db_data:
 
 #      Docker internal network
 #   ┌──────────────────────────┐
