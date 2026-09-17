@@ -26,7 +26,23 @@ public class User {
   @Enumerated(EnumType.STRING)
   private Role role;
 
+  public UUID getId(){
+    return id;
+  }
+
+  public String getPassword(){
+    return password;
+  }
+
+  public String getEmail(){
+    return email;
+  }
+
   private enum Role {
     ADMIN, USER
+  }
+  
+  public Role getRole(){
+    return role;
   }
 }

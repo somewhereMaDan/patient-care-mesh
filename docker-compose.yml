@@ -161,6 +161,8 @@ services:
       DB_PASSWORD: password
     ports: 
       - "4005:4005"
+    networks:
+      - internal
 
 networks:
   internal:
