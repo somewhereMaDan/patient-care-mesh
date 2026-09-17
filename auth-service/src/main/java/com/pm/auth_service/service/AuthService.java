@@ -21,7 +21,17 @@ public class AuthService {
   private final JwtUtil jwt;
   
   public Optional<String> login(LoginRequest req) {
-    User user = userModal.findByEmail(req.getEmail()).orElseThrow(() -> new RuntimeException("Invalid Cred"));
+    System.out.println("this is login service");
+
+    System.out.println("email: " + req.getEmail());
+    System.out.println("pass: " + req.getPassword());
+
+    User user = userModal.findByEmail(req.getEmail()).orElseThrow(() -> new RuntimeException("Invalid Email"));
+
+    System.out.println("after finding user");
+
+    System.out.println("Password valid: " +
+    encoder.matches("maddy@1234", user.getPassword()));
 
     boolean valid = encoder.matches(req.getPassword(), user.getPassword());
 

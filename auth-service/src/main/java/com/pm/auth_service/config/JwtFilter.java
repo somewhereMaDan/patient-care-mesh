@@ -26,7 +26,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
-  @Value("${jwt.secret:some_secret}")
+  @Value("${jwt.secret}")
   private String secret;
 
   private static final Logger log = LoggerFactory.getLogger(JwtFilter.class);

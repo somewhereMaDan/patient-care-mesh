@@ -56,6 +56,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
     ports:
       - "9092:9092" # Listner-PLAINTEXT (used by other docker containers, eg. kafka:9092)
       - "9094:9094" # Listner-EXTERNAL (used by host machine, eg. localhost:9094)
@@ -85,6 +86,7 @@ services:
       BILLING_SERVICE_GRPC_PORT: 9001
       LOGGING_LEVEL_ROOT: WARN
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
     #       patient-service
     #       |
     #       | TCP connection
@@ -108,7 +110,7 @@ services:
     # depends_on:
     #     - db
     environment:
-      - SPRING_OUTPUT_ANSI_ENABLED=ALWAYS
+      SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
     tty: true
     #     DB_HOST: shared-db
     #     DB_PORT: 5432
@@ -129,6 +131,7 @@ services:
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       LOGGING_LEVEL_ROOT: WARN
+      SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
     ports:
       - "4002:4002"
     networks:
@@ -159,6 +162,8 @@ services:
       DB_PORT: 5432
       DB_NAME: db
       DB_PASSWORD: password
+      SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
+      JWT_SECRET: my-super-secret-key-for-auth-service-2026
     ports: 
       - "4005:4005"
     networks:
