@@ -130,8 +130,9 @@ services:
     restart: "no"
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      LOGGING_LEVEL_ROOT: WARN
+      # LOGGING_LEVEL_ROOT: WARN
       SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
+      # AUTH_SERVICE_URL: http://auth-service:4005/auth
     ports:
       - "4002:4002"
     networks:
@@ -143,6 +144,8 @@ services:
       dockerfile: dockerfile
     container_name: api-gateway
     restart: "no"
+    environment:
+      SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
     ports: 
       - "4004:4004"
     networks:

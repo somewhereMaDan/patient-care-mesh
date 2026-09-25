@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.pm.auth_service.Repository.UserRepository;
 import com.pm.auth_service.dto.Request.LoginRequest;
-import com.pm.auth_service.dto.Response.LoginResponse;
+import com.pm.auth_service.exception.UnauthorizedException;
 import com.pm.auth_service.model.User;
 import com.pm.auth_service.util.JwtUtil;
 
@@ -21,24 +21,13 @@ public class AuthService {
   private final JwtUtil jwt;
   
   public Optional<String> login(LoginRequest req) {
-    System.out.println("this is login service");
-
-    System.out.println("email: " + req.getEmail());
-    System.out.println("pass: " + req.getPassword());
-
-    User user = userModal.findByEmail(req.getEmail()).orElseThrow(() -> new RuntimeException("Invalid Email"));
-
-    System.out.println("after finding user");
-
-    System.out.println("Password valid: " +
-    encoder.matches("maddy@1234", user.getPassword()));
+    User user = userModal.findByEmail(req.getEmail()).orElseThrow(() -> new UnauthorizedException("User not found"));
 
     boolean valid = encoder.matches(req.getPassword(), user.getPassword());
 
     if (!valid) {
-      throw new RuntimeException("password did not match");
+      throw new UnauthorizedException("Invalid Credentials");
     }
-
     String token = jwt.generateToken(user);
     return Optional.of(token);
   }

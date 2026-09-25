@@ -56,10 +56,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
       var auth = new UsernamePasswordAuthenticationToken(principal, null,
           List.of(new SimpleGrantedAuthority("ROLE_" + role)));
-      // Current user:
-      // userId = ""
-      // email = abc@test.com
-      // authorities = [ROLE_ADMIN]
 
       SecurityContextHolder.getContext().setAuthentication(auth);
       // this stores data like req.user (line 51 and 53) so we'll be able to fetch
@@ -79,6 +75,7 @@ public class JwtFilter extends OncePerRequestFilter {
       res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
       return;
     }
+    System.out.println("Request is autheticated");
     filterChain.doFilter(req, res);
   }
 }

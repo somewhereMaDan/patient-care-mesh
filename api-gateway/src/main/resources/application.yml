@@ -8,6 +8,10 @@ logging:
     # root: INFO
     # org.springframework.cloud.gateway: DEBUG
 
+auth:
+  service:
+    url: http://auth-service:4005/auth
+
 spring:
   output:
     ansi:
@@ -27,6 +31,9 @@ spring:
                 - Path=/api/patients,/api/patients/**
               filters:
                 - StripPrefix=1
+                - JwtValidation
+
+            # Spring Cloud Gateway sees JwtValidation and looks for: JwtValidationGatewayFilterFactory -> Then it calls: apply(...) to obtain the actual GatewayFilter.
     
             # ┌──────────────────────────────┐
             # │       Your HOST machine      │
@@ -59,4 +66,55 @@ spring:
               filters:
                 - RewritePath=/api-docs/patients,/v3/api-docs
 
-            - id: 
+            - id: auth-service-route
+              uri: http://auth-service:4005
+              predicates:
+                - Path=/api/auth/**
+              filters:
+                - StripPrefix=1
+
+            # Docker Network
+            # ┌──────────┐
+            # │  Client  │
+            # └────┬─────┘
+            #      │
+            #      │ GET /api/patients
+            #      │ Authorization: Bearer <JWT>
+            #      ▼
+            # ┌──────────────────────┐
+            # │     API Gateway      │
+            # │        :4004         │
+            # │                      │
+            # │ JwtValidationFilter  │
+            # └──────────┬───────────┘
+            #            │
+            #            │ GET /auth/validate
+            #            │ Authorization: Bearer <JWT>
+            #            ▼
+            # ┌──────────────────────┐
+            # │     Auth Service     │
+            # │        :4005         │
+            # │                      │
+            # │ JwtFilter            │
+            # │       ↓              │
+            # │ verify JWT           │
+            # │       ↓              │
+            # │ SecurityContext      │
+            # │       ↓              │
+            # │ /auth/validate       │
+            # └──────────┬───────────┘
+            #            │
+            #            │ 200
+            #            ▼
+            # ┌──────────────────────┐
+            # │     API Gateway      │
+            # │                      │
+            # │ chain.filter()       │
+            # └──────────┬───────────┘
+            #            │
+            #            │ /patients
+            #            ▼
+            # ┌──────────────────────┐
+            # │   Patient Service    │
+            # │        :4000         │
+            # └──────────────────────┘
