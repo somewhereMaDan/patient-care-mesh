@@ -44,6 +44,7 @@ import software.amazon.awscdk.services.route53.CfnHealthCheck;
 public class LocalStack extends Stack {
     private final Vpc vpc;
     private final Cluster ecsCluster;
+    private static final String IMAGE_TAG = System.getenv().getOrDefault("IMAGE_TAG", "latest");
 
     public LocalStack(final App scope, final String id, final StackProps props) {
         super(scope, id, props);
@@ -176,7 +177,8 @@ public class LocalStack extends Stack {
                 .build();
 
         ContainerDefinitionOptions.Builder containerOptions = ContainerDefinitionOptions.builder()
-                .image(ContainerImage.fromRegistry(imageName))
+                // .image(ContainerImage.fromRegistry(imageName))
+                .image(ContainerImage.fromRegistry(imageName + ":" + IMAGE_TAG))
                 .portMappings(ports.stream()
                         .map(port -> PortMapping.builder()
                                 .containerPort(port)
@@ -194,7 +196,8 @@ public class LocalStack extends Stack {
                         .build()));
 
         Map<String, String> envVars = new HashMap<>();
-        envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS", "kafka:9092");
+        // envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS", "kafka:9092");
+        envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS", "172.19.0.10:9092");
         // envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS",
         //         "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512");
 
@@ -236,7 +239,8 @@ public class LocalStack extends Stack {
                 .build();
 
         ContainerDefinitionOptions containerOptions = ContainerDefinitionOptions.builder()
-                .image(ContainerImage.fromRegistry("api-gateway"))
+                // .image(ContainerImage.fromRegistry("api-gateway"))
+                .image(ContainerImage.fromRegistry("api-gateway:" + IMAGE_TAG))
                 .environment(Map.of(
                         "SPRING_PROFILES_ACTIVE", "prod",
 

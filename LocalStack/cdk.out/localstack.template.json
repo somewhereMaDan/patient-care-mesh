@@ -645,11 +645,11 @@
        },
        {
         "Name": "SPRING_KAFKA_BOOTSTRAP_SERVERS",
-        "Value": "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512"
+        "Value": "172.19.0.10:9092"
        }
       ],
       "Essential": true,
-      "Image": "auth-service",
+      "Image": "auth-service:1791154262",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {
@@ -891,11 +891,11 @@
       "Environment": [
        {
         "Name": "SPRING_KAFKA_BOOTSTRAP_SERVERS",
-        "Value": "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512"
+        "Value": "172.19.0.10:9092"
        }
       ],
       "Essential": true,
-      "Image": "billing-service",
+      "Image": "billing-service:1791154262",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {
@@ -1133,11 +1133,11 @@
       "Environment": [
        {
         "Name": "SPRING_KAFKA_BOOTSTRAP_SERVERS",
-        "Value": "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512"
+        "Value": "172.19.0.10:9092"
        }
       ],
       "Essential": true,
-      "Image": "analytics-service",
+      "Image": "analytics-service:1791154262",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {
@@ -1422,7 +1422,7 @@
        },
        {
         "Name": "SPRING_KAFKA_BOOTSTRAP_SERVERS",
-        "Value": "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512"
+        "Value": "172.19.0.10:9092"
        },
        {
         "Name": "BILLING_SERVICE_ADDRESS",
@@ -1430,7 +1430,7 @@
        }
       ],
       "Essential": true,
-      "Image": "patient-service",
+      "Image": "patient-service:1791154262",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {
@@ -1700,7 +1700,7 @@
        }
       ],
       "Essential": true,
-      "Image": "api-gateway",
+      "Image": "api-gateway:1791154262",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {

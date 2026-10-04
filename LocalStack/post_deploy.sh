@@ -35,12 +35,12 @@ for svc in auth-service patient-service billing-service analytics-service; do
   docker network connect --alias "$svc.patient-management.local" floci-net "$c"
 done
 
-
 echo "Checking that containers run the latest images..."
-check_image() {  # $1 = container name fragment, $2 = image tag
+TAG=$(cat "$(dirname "$0")/.image_tag")
+check_image() {  # $1 = container name fragment, $2 = image name
   c=$(docker ps -qf "name=$1")
   running=$(docker inspect -f '{{.Image}}' "$c")
-  built=$(docker image inspect -f '{{.Id}}' "$2")
+  built=$(docker image inspect -f '{{.Id}}' "$2:$TAG")
   if [ "$running" = "$built" ]; then echo "  ok: $2"; else echo "  STALE: $2 is not running the latest image"; fi
 }
 check_image "-auth-serviceContainer" auth-service
@@ -49,4 +49,37 @@ check_image "-billing-serviceContainer" billing-service
 check_image "-analytics-serviceContainer" analytics-service
 check_image "APIGatewayContainer" api-gateway
 
+echo "Done."
+
+echo "Finding auth DB..."
+AUTH_DB=""
+for c in $(docker ps -qf name=floci-rds); do
+  if docker exec -e PGPASSWORD=localpassword "$c" psql -U admin_user -h localhost -d auth-service-db -tAc "select 1" >/dev/null 2>&1; then
+    AUTH_DB=$c
+  fi
+done
+[ -n "$AUTH_DB" ] || { echo "auth DB not found"; exit 1; }
+
+echo "Waiting for users table..."
+for i in $(seq 40); do
+  docker exec -e PGPASSWORD=localpassword "$AUTH_DB" psql -U admin_user -h localhost -d auth-service-db -tAc "select to_regclass('public.users')" | grep -q users && break
+  sleep 3
+done
+
+count=$(docker exec -e PGPASSWORD=localpassword "$AUTH_DB" psql -U admin_user -h localhost -d auth-service-db -tAc "select count(*) from users")
+if [ "$count" = "0" ]; then
+  echo "Seeding test user from old volume..."
+  docker rm -f old-auth-db >/dev/null 2>&1 || true
+  docker run -d --name old-auth-db \
+    -v patient-care-mesh_auth_db_data:/var/lib/postgresql/data \
+    -e POSTGRES_PASSWORD=password postgres:17 >/dev/null
+  until docker exec old-auth-db pg_isready -U postgres >/dev/null 2>&1; do sleep 1; done
+  sleep 3
+  docker exec old-auth-db pg_dump -U postgres -d db --data-only --table=users --column-inserts \
+    | sed '/^\\/d' \
+    | docker exec -i -e PGPASSWORD=localpassword "$AUTH_DB" psql -U admin_user -h localhost -d auth-service-db
+  docker rm -f old-auth-db >/dev/null
+else
+  echo "Users already present, skipping seed."
+fi
 echo "Done."

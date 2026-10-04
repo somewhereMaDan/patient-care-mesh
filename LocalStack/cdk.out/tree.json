@@ -1071,7 +1071,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "auth-service",
+                        "image": "auth-service:1791154262",
                         "name": "auth-serviceContainer",
                         "portMappings": [
                           {
@@ -1144,7 +1144,7 @@
                           },
                           {
                             "name": "SPRING_KAFKA_BOOTSTRAP_SERVERS",
-                            "value": "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512"
+                            "value": "172.19.0.10:9092"
                           }
                         ]
                       }
@@ -1524,7 +1524,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "billing-service",
+                        "image": "billing-service:1791154262",
                         "name": "billing-serviceContainer",
                         "portMappings": [
                           {
@@ -1553,7 +1553,7 @@
                         "environment": [
                           {
                             "name": "SPRING_KAFKA_BOOTSTRAP_SERVERS",
-                            "value": "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512"
+                            "value": "172.19.0.10:9092"
                           }
                         ]
                       }
@@ -1933,7 +1933,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "analytics-service",
+                        "image": "analytics-service:1791154262",
                         "name": "analytics-serviceContainer",
                         "portMappings": [
                           {
@@ -1957,7 +1957,7 @@
                         "environment": [
                           {
                             "name": "SPRING_KAFKA_BOOTSTRAP_SERVERS",
-                            "value": "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512"
+                            "value": "172.19.0.10:9092"
                           }
                         ]
                       }
@@ -2337,7 +2337,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "patient-service",
+                        "image": "patient-service:1791154262",
                         "name": "patient-serviceContainer",
                         "portMappings": [
                           {
@@ -2410,7 +2410,7 @@
                           },
                           {
                             "name": "SPRING_KAFKA_BOOTSTRAP_SERVERS",
-                            "value": "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512"
+                            "value": "172.19.0.10:9092"
                           },
                           {
                             "name": "BILLING_SERVICE_ADDRESS",
@@ -2794,7 +2794,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "api-gateway",
+                        "image": "api-gateway:1791154262",
                         "name": "APIGatewayContainer",
                         "portMappings": [
                           {
