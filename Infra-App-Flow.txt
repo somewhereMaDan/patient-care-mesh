@@ -1,0 +1,186 @@
+New Flow - 
+
+-> Step 1: One-time setup (already done)
+
+floci-net exists and Floci runs on it, with ports 4566 and 80 published.
+LocalStack.java has SPRING_KAFKA_BOOTSTRAP_SERVERS set to 172.19.0.10:9092. It's what lets patient-service and analytics-service reach Kafka.
+
+-> Every time we change something
+
+Edit whatever you need: service code, a service's application-prod.yml, or LocalStack.java.
+Build and deploy. This builds the images, tags them, regenerates the template, deletes the old stack, deploys, and prints the new ALB hostname at the end:
+
+-> Step 2: ./LocalStack_deploy.sh
+
+Run the post-deploy steps. This creates the Kafka cluster if it's missing, adds the DNS aliases, and checks that the containers run the new images:
+
+-> ./post_deploy.sh
+Look at the check results. If any line says STALE, remove that container, wait about 30 seconds for Floci to start a new one, and run the post-deploy script again:
+
+/> To remove any stale contianer -> docker rm -f $(docker ps -qf name=auth-serviceContainer)
+
+-> ./post_deploy.sh
+
+Test through the ALB hostname from step 2, because the hostname changes after every deploy:
+Register the test user with your new endpoint.
+Log in and copy the token (it expires after an hour).
+Call /api/patients with Authorization: Bearer <token>.
+If something fails, read the last lines of the logs without following them:
+
+/> To check logs of an container -> docker logs --tail 50 $(docker ps -qf name=patient-serviceContainer)
+
+Replace patient-serviceContainer with auth-serviceContainer, APIGatewayContainer, and so on. Add | grep -v "kafka.clients" if Kafka retries flood the output.
+
+
+
+NOTE: If you recreate the Floci container, The Kafka cluster disappears with it. Run the two scripts as usual, and read the Kafka brokers: line that post_deploy.sh prints. If the address differs from 172.19.0.10:9092, change it in LocalStack.java and run ./LocalStack_deploy.sh again.
+
+What not to do: don't run docker compose up. It would start a second copy of your services and fight Floci for ports, and the only Compose command in this flow is the docker compose build inside the deploy script.
+
+If needed(To create Floci-net and Kafka Cluster) -> 
+
+❯❯ This starts Floci with a CUSTOM DOCKER NETWORK, so Floci and the containers it creates can COMMUNICATE with each other.
+Docker's own DNS on floci-net can resolve a name if the container has a network alias with that name, which is what Compose does for you.
+
+docker run -d --name floci --network floci-net \
+-e FLOCI_SERVICES_ECS_DOCKER_NETWORK=floci-net \
+-p 4566:4566 -p 80:80 \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-u root floci/floci:latest
+
+
+❯❯ Creating the KAFKA Cluster 
+aws --endpoint-url=http://localhost:4566 kafka create-cluster \
+  --cluster-name kafka-cluster \
+  --kafka-version "3.6.1" \
+  --number-of-broker-nodes 1 \
+  --broker-node-group-info '{"InstanceType":"kafka.m5.large","ClientSubnets":["subnet-1"]}'
+
+❯❯ To see the details of the cluster
+ aws --endpoint-url=http://localhost:4566 kafka describe-cluster \
+        --cluster-arn arn:aws:kafka:ap-south-1:000000000000:cluster/kafka-cluster/4c072c7d-3dab-4ecb-96f9-46b2b43d9080
+
+To check which Docker network the Redpanda container joined
+docker inspect -f '{{json .NetworkSettings.Networks}}' $(docker ps -qf ancestor=redpandadata/redpanda:latest) | head -c 600
+
+
+with Floci, its CloudFormation support for MSK doesn't actually provision the underlying Kafka cluster, you can end up with:
+
+                  Floci
+                    │
+          ┌─────────┴─────────┐
+          ↓                   ↓
+      Cloud Map              MSK
+          │                   │
+ CloudFormation           CloudFormation
+   doesn't create          may not create
+   actual resource         actual cluster
+          │                   │
+          ↓                   ↓
+     ❌ DNS names          ❌ Kafka
+          │                   │
+          ↓                   ↓
+   workaround:           workaround:
+   Docker aliases        AWS CLI create-cluster
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Old Flow
+Understood, here's a full reset. It keeps the two Docker volumes (patient-care-mesh_auth_db_data and patient-care-mesh_db_data), because the old volume is the only place your test user's password hash lives. Deleting it is irreversible, and everything else in this list can be rebuilt. If you want those gone too, there's a command at the end.
+
+Run each block in order.
+
+1. Delete the stack
+
+shell
+aws --endpoint-url=http://localhost:4566 cloudformation delete-stack --stack-name patient-management
+shell
+aws --endpoint-url=http://localhost:4566 cloudformation wait stack-delete-complete --stack-name patient-management
+
+2. Remove the containers and the network
+
+shell
+docker rm -f floci old-auth-db $(docker ps -aq -f name=floci-)
+shell
+docker network rm floci-net
+
+3. Remove the old images and the build cache
+
+shell
+docker rmi -f auth-service billing-service analytics-service patient-service api-gateway
+shell
+docker rmi -f patient-care-mesh-auth-service patient-care-mesh-billing-service patient-care-mesh-analytics-service patient-care-mesh-patient-service patient-care-mesh-api-gateway
+shell
+docker image prune -f && docker builder prune -af
+
+4. Rebuild everything from scratch. From the project root (~/work/patient-care-mesh), where docker-compose.yml is:
+
+shell
+docker compose build --no-cache
+shell
+docker tag patient-care-mesh-auth-service auth-service
+docker tag patient-care-mesh-billing-service billing-service
+docker tag patient-care-mesh-analytics-service analytics-service
+docker tag patient-care-mesh-patient-service patient-service
+docker tag patient-care-mesh-api-gateway api-gateway
+
+5. Check that the new gateway image has the updated yml (it should show ${AUTH_ROUTE_URI:...} placeholders):
+
+shell
+id=$(docker create api-gateway) && docker cp $id:/app/app.jar /tmp/gw3.jar && docker rm $id && unzip -p /tmp/gw3.jar BOOT-INF/classes/application-prod.yml | grep "uri:"
+
+6. Start Floci fresh and deploy
+
+shell
+docker network create floci-net
+shell
+docker run -d --name floci --network floci-net \
+  -e FLOCI_SERVICES_ECS_DOCKER_NETWORK=floci-net \
+  -p 4566:4566 -p 80:80 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -u root floci/floci:latest
+
+Then, from the LocalStack folder:
+
+shell
+./LocalStack_deploy.sh
+
+Paste the output of step 5 and the deploy.
+
+Floci's databases will be empty after this, and old-auth-db is removed, but the volume it used is still there. To copy your user in later, I'll have you start a temporary container on that volume again, as we did before.
+
+If you also want the volumes deleted, run this only if you're fine recreating the user from scratch:
+
+shell
+docker volume rm patient-care-mesh_auth_db_data patient-care-mesh_db_data

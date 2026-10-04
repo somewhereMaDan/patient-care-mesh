@@ -787,8 +787,54 @@
      }
     },
     "ServiceName": "auth-service",
+    "ServiceRegistries": [
+     {
+      "RegistryArn": {
+       "Fn::GetAtt": [
+        "AuthServiceCloudmapServiceBA6F14E5",
+        "Arn"
+       ]
+      }
+     }
+    ],
     "TaskDefinition": {
      "Ref": "AuthServiceTask82E6680D"
+    }
+   },
+   "DependsOn": [
+    "AuthServiceDBC6B688BA",
+    "AuthServiceDBSecurityGroupBE6D28EB",
+    "AuthServiceDBSubnetGroupCFE5A552",
+    "AuthServiceTaskTaskRoleE466B974"
+   ]
+  },
+  "AuthServiceCloudmapServiceBA6F14E5": {
+   "Type": "AWS::ServiceDiscovery::Service",
+   "Properties": {
+    "DnsConfig": {
+     "DnsRecords": [
+      {
+       "TTL": 60,
+       "Type": "A"
+      }
+     ],
+     "NamespaceId": {
+      "Fn::GetAtt": [
+       "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+       "Id"
+      ]
+     },
+     "RoutingPolicy": "MULTIVALUE"
+    },
+    "HealthCheckCustomConfig": {
+     "FailureThreshold": 1
+    },
+    "Name": "auth-service",
+    "NamespaceId": {
+     "Fn::GetAtt": [
+      "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+      "Id"
+     ]
     }
    },
    "DependsOn": [
@@ -992,8 +1038,51 @@
      }
     },
     "ServiceName": "billing-service",
+    "ServiceRegistries": [
+     {
+      "RegistryArn": {
+       "Fn::GetAtt": [
+        "BillingServiceCloudmapService9691C754",
+        "Arn"
+       ]
+      }
+     }
+    ],
     "TaskDefinition": {
      "Ref": "BillingServiceTask30D9C66E"
+    }
+   },
+   "DependsOn": [
+    "BillingServiceTaskTaskRole7A547BBF"
+   ]
+  },
+  "BillingServiceCloudmapService9691C754": {
+   "Type": "AWS::ServiceDiscovery::Service",
+   "Properties": {
+    "DnsConfig": {
+     "DnsRecords": [
+      {
+       "TTL": 60,
+       "Type": "A"
+      }
+     ],
+     "NamespaceId": {
+      "Fn::GetAtt": [
+       "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+       "Id"
+      ]
+     },
+     "RoutingPolicy": "MULTIVALUE"
+    },
+    "HealthCheckCustomConfig": {
+     "FailureThreshold": 1
+    },
+    "Name": "billing-service",
+    "NamespaceId": {
+     "Fn::GetAtt": [
+      "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+      "Id"
+     ]
     }
    },
    "DependsOn": [
@@ -1186,8 +1275,52 @@
      }
     },
     "ServiceName": "analytics-service",
+    "ServiceRegistries": [
+     {
+      "RegistryArn": {
+       "Fn::GetAtt": [
+        "AnalyticsServiceCloudmapService37E505E7",
+        "Arn"
+       ]
+      }
+     }
+    ],
     "TaskDefinition": {
      "Ref": "AnalyticsServiceTaskC3AFBC47"
+    }
+   },
+   "DependsOn": [
+    "AnalyticsServiceTaskTaskRole1ABB10CB",
+    "MskCluster"
+   ]
+  },
+  "AnalyticsServiceCloudmapService37E505E7": {
+   "Type": "AWS::ServiceDiscovery::Service",
+   "Properties": {
+    "DnsConfig": {
+     "DnsRecords": [
+      {
+       "TTL": 60,
+       "Type": "A"
+      }
+     ],
+     "NamespaceId": {
+      "Fn::GetAtt": [
+       "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+       "Id"
+      ]
+     },
+     "RoutingPolicy": "MULTIVALUE"
+    },
+    "HealthCheckCustomConfig": {
+     "FailureThreshold": 1
+    },
+    "Name": "analytics-service",
+    "NamespaceId": {
+     "Fn::GetAtt": [
+      "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+      "Id"
+     ]
     }
    },
    "DependsOn": [
@@ -1293,7 +1426,7 @@
        },
        {
         "Name": "BILLING_SERVICE_ADDRESS",
-        "Value": "host.docker.internal"
+        "Value": "billing-service.patient-management.local"
        }
       ],
       "Essential": true,
@@ -1435,11 +1568,62 @@
      }
     },
     "ServiceName": "patient-service",
+    "ServiceRegistries": [
+     {
+      "RegistryArn": {
+       "Fn::GetAtt": [
+        "PatientServiceCloudmapService151F234D",
+        "Arn"
+       ]
+      }
+     }
+    ],
     "TaskDefinition": {
      "Ref": "PatientServiceTaskF865B565"
     }
    },
    "DependsOn": [
+    "BillingServiceCloudmapService9691C754",
+    "BillingServiceSecurityGroup3783AD35",
+    "BillingServiceFEB36D90",
+    "MskCluster",
+    "PatientServiceDBB84F9BF9",
+    "PatientServiceDBSecurityGroup6B97C0E5",
+    "PatientServiceDBSubnetGroupCED49D16",
+    "PatientServiceTaskTaskRole4FB5B4E2"
+   ]
+  },
+  "PatientServiceCloudmapService151F234D": {
+   "Type": "AWS::ServiceDiscovery::Service",
+   "Properties": {
+    "DnsConfig": {
+     "DnsRecords": [
+      {
+       "TTL": 60,
+       "Type": "A"
+      }
+     ],
+     "NamespaceId": {
+      "Fn::GetAtt": [
+       "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+       "Id"
+      ]
+     },
+     "RoutingPolicy": "MULTIVALUE"
+    },
+    "HealthCheckCustomConfig": {
+     "FailureThreshold": 1
+    },
+    "Name": "patient-service",
+    "NamespaceId": {
+     "Fn::GetAtt": [
+      "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+      "Id"
+     ]
+    }
+   },
+   "DependsOn": [
+    "BillingServiceCloudmapService9691C754",
     "BillingServiceSecurityGroup3783AD35",
     "BillingServiceFEB36D90",
     "MskCluster",
@@ -1465,6 +1649,7 @@
     }
    },
    "DependsOn": [
+    "BillingServiceCloudmapService9691C754",
     "BillingServiceSecurityGroup3783AD35",
     "BillingServiceFEB36D90",
     "MskCluster",
@@ -1498,12 +1683,20 @@
      {
       "Environment": [
        {
-        "Name": "AUTH_SERVICE_URL",
-        "Value": "http://host.docker.internal:4005"
-       },
-       {
         "Name": "SPRING_PROFILES_ACTIVE",
         "Value": "prod"
+       },
+       {
+        "Name": "PATIENT_ROUTE_URI",
+        "Value": "http://patient-service.patient-management.local:4000"
+       },
+       {
+        "Name": "AUTH_SERVICE_URL",
+        "Value": "http://auth-service.patient-management.local:4005/auth"
+       },
+       {
+        "Name": "AUTH_ROUTE_URI",
+        "Value": "http://auth-service.patient-management.local:4005"
        }
       ],
       "Essential": true,

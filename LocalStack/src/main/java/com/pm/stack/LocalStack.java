@@ -1,15 +1,16 @@
 package com.pm.stack;
 
-import software.amazon.awscdk.SecretValue;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import software.amazon.awscdk.App;
 import software.amazon.awscdk.AppProps;
 import software.amazon.awscdk.BootstraplessSynthesizer;
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.RemovalPolicy;
+import software.amazon.awscdk.SecretValue;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.Token;
@@ -20,6 +21,7 @@ import software.amazon.awscdk.services.ec2.InstanceType;
 import software.amazon.awscdk.services.ec2.Vpc;
 import software.amazon.awscdk.services.ecs.AwsLogDriverProps;
 import software.amazon.awscdk.services.ecs.CloudMapNamespaceOptions;
+import software.amazon.awscdk.services.ecs.CloudMapOptions;
 import software.amazon.awscdk.services.ecs.Cluster;
 import software.amazon.awscdk.services.ecs.ContainerDefinitionOptions;
 import software.amazon.awscdk.services.ecs.ContainerImage;
@@ -89,7 +91,7 @@ public class LocalStack extends Stack {
                 List.of(4000),
                 patientServiceDb,
                 Map.of(
-                        "BILLING_SERVICE_ADDRESS", "host.docker.internal",
+                        "BILLING_SERVICE_ADDRESS", "billing-service.patient-management.local",
                         "BILLING_SERVICE_GRPC_PORT", "9001"));
         patientService.getNode().addDependency(patientServiceDb);
         // patientService.getNode().addDependency(patientDbHealthCheck);
@@ -192,8 +194,9 @@ public class LocalStack extends Stack {
                         .build()));
 
         Map<String, String> envVars = new HashMap<>();
-        envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS",
-                "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512");
+        envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS", "kafka:9092");
+        // envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS",
+        //         "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512");
 
         if (additionalEnvVars != null) {
             envVars.putAll(additionalEnvVars);
@@ -221,6 +224,7 @@ public class LocalStack extends Stack {
                 .taskDefinition(taskDefinition)
                 .assignPublicIp(false)
                 .serviceName(imageName)
+                .cloudMapOptions(CloudMapOptions.builder().name(imageName).build())
                 .build();
     }
 
@@ -235,7 +239,13 @@ public class LocalStack extends Stack {
                 .image(ContainerImage.fromRegistry("api-gateway"))
                 .environment(Map.of(
                         "SPRING_PROFILES_ACTIVE", "prod",
-                        "AUTH_SERVICE_URL", "http://host.docker.internal:4005"))
+
+                        "AUTH_SERVICE_URL",
+                        "http://auth-service.patient-management.local:4005/auth",
+                        "AUTH_ROUTE_URI", "http://auth-service.patient-management.local:4005",
+
+                        "PATIENT_ROUTE_URI",
+                        "http://patient-service.patient-management.local:4000"))
                 .portMappings(List.of(4004).stream()
                         .map(port -> PortMapping.builder()
                                 .containerPort(port)
@@ -277,3 +287,67 @@ public class LocalStack extends Stack {
         System.out.println("App synthesizing in progress...");
     }
 }
+
+
+/* 
+❯❯ Creating the KAFKA Cluster 
+aws --endpoint-url=http://localhost:4566 kafka create-cluster \
+  --cluster-name kafka-cluster \
+  --kafka-version "3.6.1" \
+  --number-of-broker-nodes 1 \
+  --broker-node-group-info '{"InstanceType":"kafka.m5.large","ClientSubnets":["subnet-1"]}'
+
+❯❯ To see the details of the cluster
+ aws --endpoint-url=http://localhost:4566 kafka describe-cluster \
+        --cluster-arn arn:aws:kafka:ap-south-1:000000000000:cluster/kafka-cluster/4c072c7d-3dab-4ecb-96f9-46b2b43d9080
+
+To check which Docker network the Redpanda container joined
+docker inspect -f '{{json .NetworkSettings.Networks}}' $(docker ps -qf ancestor=redpandadata/redpanda:latest) | head -c 600
+
+❯❯ This starts Floci with a CUSTOM DOCKER NETWORK, so Floci and the containers it creates can COMMUNICATE with each other.
+Docker's own DNS on floci-net can resolve a name if the container has a network alias with that name, which is what Compose does for you.
+
+docker run -d --name floci --network floci-net \
+-e FLOCI_SERVICES_ECS_DOCKER_NETWORK=floci-net \
+-p 4566:4566 -p 80:80 \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-u root floci/floci:latest
+
+        floci-net
+          │
+┌─────────┼─────────┐
+│         │         │
+Floci API Gateway Auth Service
+│
+Patient Service
+
+❯❯ Adding the ALIASES to the running containers
+for svc in auth-service patient-service billing-service analytics-service; do
+  c=$(docker ps -qf "name=-${svc}Container")
+  docker network disconnect floci-net "$c"
+  docker network connect --alias "$svc.patient-management.local" floci-net "$c"
+done
+
+--> so can we get DNS names like - auth-service.patient-management.local,....
+
+
+with Floci, if its CloudFormation support for MSK doesn't actually provision the underlying Kafka cluster, you can end up with:
+
+                  Floci
+                    │
+          ┌─────────┴─────────┐
+          ↓                   ↓
+      Cloud Map              MSK
+          │                   │
+ CloudFormation           CloudFormation
+   doesn't create          may not create
+   actual resource         actual cluster
+          │                   │
+          ↓                   ↓
+     ❌ DNS names          ❌ Kafka
+          │                   │
+          ↓                   ↓
+   workaround:           workaround:
+   Docker aliases        AWS CLI create-cluster
+
+*/

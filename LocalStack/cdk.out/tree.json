@@ -1355,6 +1355,16 @@
                       }
                     },
                     "serviceName": "auth-service",
+                    "serviceRegistries": [
+                      {
+                        "registryArn": {
+                          "Fn::GetAtt": [
+                            "AuthServiceCloudmapServiceBA6F14E5",
+                            "Arn"
+                          ]
+                        }
+                      }
+                    ],
                     "taskDefinition": {
                       "Ref": "AuthServiceTask82E6680D"
                     }
@@ -1363,6 +1373,55 @@
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.aws_ecs.CfnService",
                   "version": "2.178.1"
+                }
+              },
+              "CloudmapService": {
+                "id": "CloudmapService",
+                "path": "localstack/AuthService/CloudmapService",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "localstack/AuthService/CloudmapService/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::ServiceDiscovery::Service",
+                      "aws:cdk:cloudformation:props": {
+                        "dnsConfig": {
+                          "dnsRecords": [
+                            {
+                              "type": "A",
+                              "ttl": 60
+                            }
+                          ],
+                          "namespaceId": {
+                            "Fn::GetAtt": [
+                              "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+                              "Id"
+                            ]
+                          },
+                          "routingPolicy": "MULTIVALUE"
+                        },
+                        "healthCheckCustomConfig": {
+                          "failureThreshold": 1
+                        },
+                        "name": "auth-service",
+                        "namespaceId": {
+                          "Fn::GetAtt": [
+                            "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+                            "Id"
+                          ]
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_servicediscovery.CfnService",
+                      "version": "2.178.1"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_servicediscovery.Service",
+                  "version": "2.178.1",
+                  "metadata": []
                 }
               },
               "SecurityGroup": {
@@ -1705,6 +1764,16 @@
                       }
                     },
                     "serviceName": "billing-service",
+                    "serviceRegistries": [
+                      {
+                        "registryArn": {
+                          "Fn::GetAtt": [
+                            "BillingServiceCloudmapService9691C754",
+                            "Arn"
+                          ]
+                        }
+                      }
+                    ],
                     "taskDefinition": {
                       "Ref": "BillingServiceTask30D9C66E"
                     }
@@ -1713,6 +1782,55 @@
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.aws_ecs.CfnService",
                   "version": "2.178.1"
+                }
+              },
+              "CloudmapService": {
+                "id": "CloudmapService",
+                "path": "localstack/BillingService/CloudmapService",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "localstack/BillingService/CloudmapService/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::ServiceDiscovery::Service",
+                      "aws:cdk:cloudformation:props": {
+                        "dnsConfig": {
+                          "dnsRecords": [
+                            {
+                              "type": "A",
+                              "ttl": 60
+                            }
+                          ],
+                          "namespaceId": {
+                            "Fn::GetAtt": [
+                              "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+                              "Id"
+                            ]
+                          },
+                          "routingPolicy": "MULTIVALUE"
+                        },
+                        "healthCheckCustomConfig": {
+                          "failureThreshold": 1
+                        },
+                        "name": "billing-service",
+                        "namespaceId": {
+                          "Fn::GetAtt": [
+                            "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+                            "Id"
+                          ]
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_servicediscovery.CfnService",
+                      "version": "2.178.1"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_servicediscovery.Service",
+                  "version": "2.178.1",
+                  "metadata": []
                 }
               },
               "SecurityGroup": {
@@ -2050,6 +2168,16 @@
                       }
                     },
                     "serviceName": "analytics-service",
+                    "serviceRegistries": [
+                      {
+                        "registryArn": {
+                          "Fn::GetAtt": [
+                            "AnalyticsServiceCloudmapService37E505E7",
+                            "Arn"
+                          ]
+                        }
+                      }
+                    ],
                     "taskDefinition": {
                       "Ref": "AnalyticsServiceTaskC3AFBC47"
                     }
@@ -2058,6 +2186,55 @@
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.aws_ecs.CfnService",
                   "version": "2.178.1"
+                }
+              },
+              "CloudmapService": {
+                "id": "CloudmapService",
+                "path": "localstack/AnalyticsService/CloudmapService",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "localstack/AnalyticsService/CloudmapService/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::ServiceDiscovery::Service",
+                      "aws:cdk:cloudformation:props": {
+                        "dnsConfig": {
+                          "dnsRecords": [
+                            {
+                              "type": "A",
+                              "ttl": 60
+                            }
+                          ],
+                          "namespaceId": {
+                            "Fn::GetAtt": [
+                              "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+                              "Id"
+                            ]
+                          },
+                          "routingPolicy": "MULTIVALUE"
+                        },
+                        "healthCheckCustomConfig": {
+                          "failureThreshold": 1
+                        },
+                        "name": "analytics-service",
+                        "namespaceId": {
+                          "Fn::GetAtt": [
+                            "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+                            "Id"
+                          ]
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_servicediscovery.CfnService",
+                      "version": "2.178.1"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_servicediscovery.Service",
+                  "version": "2.178.1",
+                  "metadata": []
                 }
               },
               "SecurityGroup": {
@@ -2237,7 +2414,7 @@
                           },
                           {
                             "name": "BILLING_SERVICE_ADDRESS",
-                            "value": "host.docker.internal"
+                            "value": "billing-service.patient-management.local"
                           }
                         ]
                       }
@@ -2448,6 +2625,16 @@
                       }
                     },
                     "serviceName": "patient-service",
+                    "serviceRegistries": [
+                      {
+                        "registryArn": {
+                          "Fn::GetAtt": [
+                            "PatientServiceCloudmapService151F234D",
+                            "Arn"
+                          ]
+                        }
+                      }
+                    ],
                     "taskDefinition": {
                       "Ref": "PatientServiceTaskF865B565"
                     }
@@ -2456,6 +2643,55 @@
                 "constructInfo": {
                   "fqn": "aws-cdk-lib.aws_ecs.CfnService",
                   "version": "2.178.1"
+                }
+              },
+              "CloudmapService": {
+                "id": "CloudmapService",
+                "path": "localstack/PatientService/CloudmapService",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "localstack/PatientService/CloudmapService/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::ServiceDiscovery::Service",
+                      "aws:cdk:cloudformation:props": {
+                        "dnsConfig": {
+                          "dnsRecords": [
+                            {
+                              "type": "A",
+                              "ttl": 60
+                            }
+                          ],
+                          "namespaceId": {
+                            "Fn::GetAtt": [
+                              "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+                              "Id"
+                            ]
+                          },
+                          "routingPolicy": "MULTIVALUE"
+                        },
+                        "healthCheckCustomConfig": {
+                          "failureThreshold": 1
+                        },
+                        "name": "patient-service",
+                        "namespaceId": {
+                          "Fn::GetAtt": [
+                            "PatientManagementClusterDefaultServiceDiscoveryNamespace72C5F264",
+                            "Id"
+                          ]
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_servicediscovery.CfnService",
+                      "version": "2.178.1"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_servicediscovery.Service",
+                  "version": "2.178.1",
+                  "metadata": []
                 }
               },
               "SecurityGroup": {
@@ -2581,12 +2817,20 @@
                         },
                         "environment": [
                           {
-                            "name": "AUTH_SERVICE_URL",
-                            "value": "http://host.docker.internal:4005"
-                          },
-                          {
                             "name": "SPRING_PROFILES_ACTIVE",
                             "value": "prod"
+                          },
+                          {
+                            "name": "PATIENT_ROUTE_URI",
+                            "value": "http://patient-service.patient-management.local:4000"
+                          },
+                          {
+                            "name": "AUTH_SERVICE_URL",
+                            "value": "http://auth-service.patient-management.local:4005/auth"
+                          },
+                          {
+                            "name": "AUTH_ROUTE_URI",
+                            "value": "http://auth-service.patient-management.local:4005"
                           }
                         ]
                       }

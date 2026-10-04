@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pm.auth_service.dto.Request.LoginRequest;
+import com.pm.auth_service.dto.Request.RegisterRequest;
 import com.pm.auth_service.dto.Response.LoginResponse;
 import com.pm.auth_service.service.AuthService;
 
@@ -25,8 +26,8 @@ public class AuthController {
   public AuthController(AuthService authService) {
     this.authService = authService;
   }
-  
-  @Operation (summary = "login endpoint of user")
+
+  @Operation(summary = "login endpoint of user")
   @PostMapping("/login")
   public ResponseEntity<LoginResponse> Login(@RequestBody LoginRequest req) {
     Optional<String> tokenOptional = authService.login(req);
@@ -35,6 +36,11 @@ public class AuthController {
     }
     String token = tokenOptional.get();
     return ResponseEntity.ok(new LoginResponse(token));
+  }
+
+  @PostMapping("/register")
+  public ResponseEntity<?> Register(@RequestBody RegisterRequest req) {
+    return ResponseEntity.ok("ok");
   }
 
   @GetMapping("/validate")
