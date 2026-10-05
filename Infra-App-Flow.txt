@@ -86,6 +86,20 @@ with Floci, its CloudFormation support for MSK doesn't actually provision the un
 
 
 
+Floci remembers which image each name pointed to the first time it used it, and it never checks again.
+
+Example with auth-service:
+
+Monday: you build auth-service, and the image gets an ID, say AAA. Floci starts a container and notes: "auth-service = AAA".
+Tuesday: you change the code and rebuild. The name auth-service now points to a new image, BBB.
+You redeploy: Floci checks its notes, sees "auth-service = AAA", and starts a container from AAA. You get Monday's code. The container shows Up, so nothing tells you it's out of date.
+
+Docker Compose doesn't behave like this, because it looks at the tag fresh each time. That's why you hadn't seen it before. It's a bug in Floci, which already has a fix in development, but I can't tell if your version includes it.
+
+The workaround we added: every deploy uses a new name, like auth-service:1791150000, built from the current time. Floci has no note for that name, so it looks the image up fresh and gets BBB.
+
+What that means for you: you don't need to think about it. LocalStack_deploy.sh makes the new name, the CDK uses it, and the ok lines from post_deploy.sh confirm each container runs the image you just built. All five showed ok, so it's working. If a line ever says STALE, the workaround failed for that service, and you should tell me.
+
 
 
 
