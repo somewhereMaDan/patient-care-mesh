@@ -44,7 +44,8 @@ docker compose build $BUILD
 # The tag is included in the synthesized CloudFormation template,
 # so ECS sees each deployment as a new image version.
 
-export IMAGE_TAG=$(date +%s)
+export IMAGE_TAG=$(date +%s) # date +%s generates the current Unix timestamp in seconds.
+# export IMAGE_TAG=... stores that timestamp in the IMAGE_TAG environment variable and exports it to child processes.
 echo "$IMAGE_TAG" > .image_tag
 
 # The CDK puts that tag in the template, so every service starts from a name Floci has never seen.

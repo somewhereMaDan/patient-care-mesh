@@ -649,7 +649,7 @@
        }
       ],
       "Essential": true,
-      "Image": "auth-service:1791154262",
+      "Image": "auth-service:1792085761",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {
@@ -895,7 +895,7 @@
        }
       ],
       "Essential": true,
-      "Image": "billing-service:1791154262",
+      "Image": "billing-service:1792085761",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {
@@ -1137,7 +1137,7 @@
        }
       ],
       "Essential": true,
-      "Image": "analytics-service:1791154262",
+      "Image": "analytics-service:1792085761",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {
@@ -1430,7 +1430,7 @@
        }
       ],
       "Essential": true,
-      "Image": "patient-service:1791154262",
+      "Image": "patient-service:1792085761",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {
@@ -1683,6 +1683,10 @@
      {
       "Environment": [
        {
+        "Name": "AUTH_ROUTE_URI",
+        "Value": "http://auth-service.patient-management.local:4005"
+       },
+       {
         "Name": "SPRING_PROFILES_ACTIVE",
         "Value": "prod"
        },
@@ -1693,14 +1697,10 @@
        {
         "Name": "AUTH_SERVICE_URL",
         "Value": "http://auth-service.patient-management.local:4005/auth"
-       },
-       {
-        "Name": "AUTH_ROUTE_URI",
-        "Value": "http://auth-service.patient-management.local:4005"
        }
       ],
       "Essential": true,
-      "Image": "api-gateway:1791154262",
+      "Image": "api-gateway:1792085761",
       "LogConfiguration": {
        "LogDriver": "awslogs",
        "Options": {

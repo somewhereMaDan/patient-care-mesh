@@ -40,7 +40,7 @@ public class KafkaProducer {
      * ↓
      * patient topic
      */
-    kafkaTemplate.send("patient", event.toByteArray())
+    kafkaTemplate.send("patient", patient.getId().toString(), event.toByteArray()) // hands the bytes to the Kafka producer, then The producer runs its configured serializers
         .whenComplete((result, ex) -> {
           if (ex != null) {
             log.error("Failed to send PatientCreated event", ex);

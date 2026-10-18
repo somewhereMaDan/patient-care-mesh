@@ -1071,7 +1071,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "auth-service:1791154262",
+                        "image": "auth-service:1792085761",
                         "name": "auth-serviceContainer",
                         "portMappings": [
                           {
@@ -1524,7 +1524,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "billing-service:1791154262",
+                        "image": "billing-service:1792085761",
                         "name": "billing-serviceContainer",
                         "portMappings": [
                           {
@@ -1933,7 +1933,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "analytics-service:1791154262",
+                        "image": "analytics-service:1792085761",
                         "name": "analytics-serviceContainer",
                         "portMappings": [
                           {
@@ -2337,7 +2337,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "patient-service:1791154262",
+                        "image": "patient-service:1792085761",
                         "name": "patient-serviceContainer",
                         "portMappings": [
                           {
@@ -2794,7 +2794,7 @@
                     "containerDefinitions": [
                       {
                         "essential": true,
-                        "image": "api-gateway:1791154262",
+                        "image": "api-gateway:1792085761",
                         "name": "APIGatewayContainer",
                         "portMappings": [
                           {
@@ -2817,6 +2817,10 @@
                         },
                         "environment": [
                           {
+                            "name": "AUTH_ROUTE_URI",
+                            "value": "http://auth-service.patient-management.local:4005"
+                          },
+                          {
                             "name": "SPRING_PROFILES_ACTIVE",
                             "value": "prod"
                           },
@@ -2827,10 +2831,6 @@
                           {
                             "name": "AUTH_SERVICE_URL",
                             "value": "http://auth-service.patient-management.local:4005/auth"
-                          },
-                          {
-                            "name": "AUTH_ROUTE_URI",
-                            "value": "http://auth-service.patient-management.local:4005"
                           }
                         ]
                       }
